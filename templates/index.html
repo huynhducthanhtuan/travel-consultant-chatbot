@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chatbot Tư Vấn Du Lịch</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        max-width: 900px;
+        margin: 20px auto;
+      }
+      #chat {
+        border: 1px solid #ddd;
+        padding: 12px;
+        height: 60vh;
+        overflow: auto;
+        background: #fafafa;
+      }
+      .msg {
+        margin: 8px 0;
+        padding: 8px 10px;
+        border-radius: 8px;
+        max-width: 80%;
+      }
+      .user {
+        background: #d9f1ff;
+        margin-left: auto;
+      }
+      .bot {
+        background: #fff;
+        margin-right: auto;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      }
+      #inputRow {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+      }
+      #txt {
+        flex: 1;
+        padding: 8px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 12px;
+        font-size: 16px;
+      }
+      .sources {
+        font-size: 12px;
+        color: #666;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🌴 Chatbot Tư Vấn Du Lịch Việt Nam</h1>
+    <div id="chat"></div>
+
+    <div id="inputRow">
+      <input
+        id="txt"
+        placeholder="Hỏi tôi về địa điểm, giá vé, lịch trình..."
+      />
+      <button id="send">Gửi</button>
+      <button id="clear">Xóa</button>
+    </div>
+
+    <script>
+      const chatEl = document.getElementById("chat");
+      const txt = document.getElementById("txt");
+      const send = document.getElementById("send");
+      const clear = document.getElementById("clear");
+
+      // local chat history
+      let history = [];
+
+      function appendMessage(content, who = "bot", sources = []) {
+        const div = document.createElement("div");
+        div.className = "msg " + (who === "user" ? "user" : "bot");
+        div.innerHTML = content.replace(/\n/g, "<br>");
+        chatEl.appendChild(div);
+        if (sources && sources.length) {
+          const s = document.createElement("div");
+          s.className = "sources";
+          s.textContent = "Nguồn: " + JSON.stringify(sources);
+          chatEl.appendChild(s);
+        }
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const text = txt.value.trim();
+        if (!text) return;
+        appendMessage(text, "user");
+        txt.value = "";
+        // show loading
+        appendMessage("...đang trả lời", "bot");
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text, history }),
+          });
+          const data = await res.json();
+          // remove last loading
+          chatEl.lastChild.previousSibling &&
+            chatEl.removeChild(chatEl.lastChild.previousSibling);
+          // append bot reply
+          appendMessage(
+            data.reply || "Xin lỗi, lỗi server",
+            "bot",
+            data.sources || []
+          );
+          history = data.history || history;
+        } catch (e) {
+          appendMessage("Lỗi kết nối: " + e.message, "bot");
+        }
+      }
+
+      send.addEventListener("click", sendMessage);
+      txt.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+      clear.addEventListener("click", () => {
+        chatEl.innerHTML = "";
+        history = [];
+      });
+    </script>
+  </body>
+</html>
