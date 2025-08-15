@@ -268,6 +268,32 @@ def is_tourism_related(question: str) -> bool:
         print("Error in topic classification:", e)
         return True
 
+def is_vietnamese_language(text: str) -> bool:
+    """
+    Dùng Azure GPT để xác định câu có phải tiếng Việt không.
+    Trả về True nếu là tiếng Việt, False nếu không.
+    """
+    check_messages = [
+        {
+            "role": "system",
+            "content": "Bạn là bộ lọc ngôn ngữ. Trả lời duy nhất 'yes' nếu câu hỏi là tiếng Việt, 'no' nếu không."
+        },
+        {"role": "user", "content": text}
+    ]
+    try:
+        resp = client.chat.completions.create(
+            model=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),
+            messages=check_messages,
+            temperature=0,
+            max_tokens=2
+        )
+        answer = resp.choices[0].message.content.strip().lower()
+        return answer.startswith("y")
+    except Exception as e:
+        print("Error in language detection:", e)
+        # Nếu lỗi thì cho qua (hoặc mặc định False)
+        return True
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -277,6 +303,11 @@ def api_chat():
     data = request.json
     user_message = data.get("message", "")
     chat_history = data.get("history", [])
+
+    if not is_vietnamese_language(user_message):
+        reply = "Vui lòng hỏi đáp bằng tiếng Việt."
+        chat_history.append((user_message, reply))
+        return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
     if not is_tourism_related(user_message):
         reply = "Tôi là chatbot về du lịch, hãy hỏi câu hỏi liên quan đến địa điểm, lịch trình du lịch ở Việt Nam."
