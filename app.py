@@ -1,43 +1,43 @@
-import os
-import json
-import random
-from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify
-from langchain.vectorstores import FAISS
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
+from langchain.vectorstores import FAISS
+from flask import Flask, render_template, request, jsonify
 from openai import AzureOpenAI
+from dotenv import load_dotenv
+import random
+import json
+import os
 
 load_dotenv()
 
 # Mock data
 destinations_data = [
-    "Hà Nội: Thủ đô ngàn năm văn hiến, hồ Hoàn Kiếm, phố cổ, Văn Miếu Quốc Tử Giám.",
-    "Hạ Long: Di sản thiên nhiên thế giới, nổi tiếng với hàng ngàn đảo đá vôi và hang động kỳ thú.",
-    "Sapa: Thị trấn vùng cao, khí hậu mát mẻ, ruộng bậc thang và đỉnh Fansipan.",
-    "Hà Giang: Cao nguyên đá Đồng Văn, đèo Mã Pì Lèng, lễ hội hoa tam giác mạch.",
-    "Ninh Bình: Tràng An, Tam Cốc – Bích Động, chùa Bái Đính.",
-    "Mộc Châu: Cao nguyên chè, hoa mận, thác Dải Yếm.",
-    "Cát Bà: Vườn quốc gia Cát Bà, bãi tắm Cát Cò, làng chài.",
-    "Lạng Sơn: Động Tam Thanh, chợ Đông Kinh, núi Mẫu Sơn.",
-    "Yên Bái: Hồ Thác Bà, Mù Cang Chải, ruộng bậc thang.",
-    "Lào Cai: Bắc Hà, chợ phiên, dinh Hoàng A Tưởng.",
-    "Quảng Ninh: Yên Tử, đảo Cô Tô, đảo Quan Lạn.",
-    "Nam Định: Nhà thờ Phú Nhai, biển Thịnh Long.",
-    "Thái Bình: Biển Đồng Châu, làng vườn Bách Thuận.",
-    "Cao Bằng: Thác Bản Giốc, động Ngườm Ngao.",
-    "Huế: Cố đô, Đại Nội, lăng tẩm vua Nguyễn.",
-    "Đà Nẵng: Bà Nà Hills, cầu Rồng, biển Mỹ Khê.",
-    "Hội An: Phố cổ UNESCO, đèn lồng, ẩm thực đặc sắc.",
-    "Quảng Bình: Hang Sơn Đoòng, động Phong Nha - Kẻ Bàng.",
-    "Nha Trang: Thành phố biển, Tháp Bà Ponagar, đảo Hòn Mun.",
-    "Đà Lạt: Thành phố ngàn hoa, hồ Xuân Hương, vườn dâu.",
-    "TP.HCM: Chợ Bến Thành, Nhà thờ Đức Bà, phố đi bộ Nguyễn Huệ.",
-    "Vũng Tàu: Bãi Sau, bãi Trước, tượng Chúa Kitô Vua.",
-    "Cần Thơ: Chợ nổi Cái Răng, miệt vườn trái cây.",
-    "Phú Quốc: Bãi Sao, VinWonders, lặn ngắm san hô.",
-    "Cà Mau: Mũi Cà Mau, rừng U Minh Hạ.",
-    "Bến Tre: Xứ dừa, cồn Phụng, du lịch miệt vườn."
+    "Hà Nội: Thủ đô ngàn năm văn hiến. Địa điểm nổi bật: hồ Hoàn Kiếm, phố cổ, Văn Miếu Quốc Tử Giám, Lăng Chủ tịch Hồ Chí Minh. Lịch trình gợi ý 2N1Đ: Ngày 1 tham quan phố cổ, hồ Hoàn Kiếm, thưởng thức phở Hà Nội và bún chả; Ngày 2 tham quan Lăng Bác, chùa Trấn Quốc, mua quà lưu niệm.",
+    "Hạ Long: Di sản thiên nhiên thế giới, nổi tiếng với hàng ngàn đảo đá vôi và hang động kỳ thú. Lịch trình gợi ý 2N1Đ: Ngày 1 đi du thuyền tham quan vịnh, thăm hang Sửng Sốt, chèo kayak; Ngày 2 tham quan Sun World, chợ Hạ Long. Món ngon: chả mực, sá sùng.",
+    "Sapa: Thị trấn vùng cao, khí hậu mát mẻ. Địa điểm: ruộng bậc thang, đỉnh Fansipan, bản Cát Cát, Tả Van. Lịch trình 3N2Đ: Ngày 1 khám phá thị trấn, chợ đêm; Ngày 2 leo Fansipan hoặc đi cáp treo, thăm bản làng; Ngày 3 mua quà lưu niệm. Món ngon: thắng cố, cá hồi Sapa.",
+    "Hà Giang: Cao nguyên đá Đồng Văn, đèo Mã Pì Lèng, lễ hội hoa tam giác mạch. Lịch trình 3N2Đ: Ngày 1 đi Quản Bạ, Yên Minh; Ngày 2 thăm Đồng Văn, Mã Pì Lèng; Ngày 3 quay về Hà Nội. Món ngon: thắng cố, cháo ấu tẩu.",
+    "Ninh Bình: Tràng An, Tam Cốc – Bích Động, chùa Bái Đính. Lịch trình 2N1Đ: Ngày 1 đi Tam Cốc, Bích Động; Ngày 2 Tràng An, Bái Đính. Món ngon: dê núi, cơm cháy.",
+    "Mộc Châu: Cao nguyên chè, hoa mận, thác Dải Yếm. Lịch trình 2N1Đ: Ngày 1 thăm đồi chè, thác Dải Yếm; Ngày 2 rừng thông bản Áng, thưởng thức đặc sản sữa bò. Món ngon: bê chao, cá hồi.",
+    "Cát Bà: Vườn quốc gia Cát Bà, bãi tắm Cát Cò, làng chài. Lịch trình 2N1Đ: Ngày 1 tắm biển, thăm làng chài; Ngày 2 trekking trong vườn quốc gia. Món ngon: hải sản tươi, tu hài.",
+    "Lạng Sơn: Động Tam Thanh, chợ Đông Kinh, núi Mẫu Sơn. Lịch trình 2N1Đ: Ngày 1 thăm động Tam Thanh, mua sắm chợ Đông Kinh; Ngày 2 leo núi Mẫu Sơn. Món ngon: vịt quay, phở chua.",
+    "Yên Bái: Hồ Thác Bà, Mù Cang Chải, ruộng bậc thang. Lịch trình 3N2Đ: Ngày 1 thăm hồ Thác Bà; Ngày 2 – 3 khám phá Mù Cang Chải. Món ngon: xôi ngũ sắc, cá nướng.",
+    "Lào Cai: Bắc Hà, chợ phiên, dinh Hoàng A Tưởng. Lịch trình 2N1Đ: Ngày 1 tham quan dinh Hoàng A Tưởng, chợ phiên; Ngày 2 khám phá bản làng. Món ngon: mèn mén, rượu ngô.",
+    "Quảng Ninh: Yên Tử, đảo Cô Tô, đảo Quan Lạn. Lịch trình 3N2Đ: Ngày 1 leo núi Yên Tử; Ngày 2 đi tàu ra Cô Tô; Ngày 3 tắm biển Quan Lạn. Món ngon: sá sùng, cù kỳ.",
+    "Nam Định: Nhà thờ Phú Nhai, biển Thịnh Long. Lịch trình 2N1Đ: Ngày 1 tham quan nhà thờ, thưởng thức phở bò Nam Định; Ngày 2 tắm biển Thịnh Long. Món ngon: bánh xíu páo.",
+    "Thái Bình: Biển Đồng Châu, làng vườn Bách Thuận. Lịch trình 2N1Đ: Ngày 1 tắm biển; Ngày 2 tham quan làng vườn. Món ngon: cá kho làng Vũ Đại.",
+    "Cao Bằng: Thác Bản Giốc, động Ngườm Ngao. Lịch trình 2N1Đ: Ngày 1 thăm thác Bản Giốc; Ngày 2 động Ngườm Ngao. Món ngon: vịt quay 7 vị, phở chua.",
+    "Huế: Cố đô, Đại Nội, lăng tẩm vua Nguyễn. Lịch trình 3N2Đ: Ngày 1 Đại Nội, chùa Thiên Mụ; Ngày 2 lăng Minh Mạng, lăng Tự Đức; Ngày 3 chợ Đông Ba. Món ngon: bún bò Huế, chè cung đình.",
+    "Đà Nẵng: Bà Nà Hills, cầu Rồng, biển Mỹ Khê. Lịch trình 2N1Đ: Ngày 1 Bà Nà Hills; Ngày 2 biển Mỹ Khê, chợ Hàn. Món ngon: mì Quảng, bánh tráng cuốn thịt heo.",
+    "Hội An: Phố cổ UNESCO, đèn lồng, ẩm thực đặc sắc. Lịch trình 2N1Đ: Ngày 1 tham quan phố cổ, chùa Cầu, ăn cao lầu, cơm gà; Ngày 2 đi làng gốm Thanh Hà, làng rau Trà Quế. Món ngon: cao lầu, bánh mì Phượng.",
+    "Quảng Bình: Hang Sơn Đoòng, động Phong Nha - Kẻ Bàng. Lịch trình 3N2Đ: Ngày 1 động Phong Nha; Ngày 2 hang Sơn Đoòng; Ngày 3 suối nước Moọc. Món ngon: cháo canh, khoai deo.",
+    "Nha Trang: Thành phố biển, Tháp Bà Ponagar, đảo Hòn Mun. Lịch trình 3N2Đ: Ngày 1 tắm biển, Tháp Bà Ponagar; Ngày 2 đảo Hòn Mun, lặn ngắm san hô; Ngày 3 chợ Đầm. Món ngon: nem nướng Ninh Hòa, bún sứa.",
+    "Đà Lạt: Thành phố ngàn hoa, hồ Xuân Hương, vườn dâu. Lịch trình 3N2Đ: Ngày 1 hồ Xuân Hương, vườn hoa; Ngày 2 đồi chè Cầu Đất, thác Datanla; Ngày 3 chợ Đà Lạt. Món ngon: lẩu gà lá é, bánh tráng nướng.",
+    "TP.HCM: Chợ Bến Thành, Nhà thờ Đức Bà, phố đi bộ Nguyễn Huệ. Lịch trình 2N1Đ: Ngày 1 tham quan trung tâm, ăn cơm tấm; Ngày 2 đi chợ Bến Thành, bảo tàng. Món ngon: hủ tiếu, bánh mì.",
+    "Vũng Tàu: Bãi Sau, bãi Trước, tượng Chúa Kitô Vua. Lịch trình 2N1Đ: Ngày 1 tắm biển Bãi Sau; Ngày 2 tham quan tượng Chúa, mua hải sản. Món ngon: bánh khọt, lẩu cá đuối.",
+    "Cần Thơ: Chợ nổi Cái Răng, miệt vườn trái cây. Lịch trình 2N1Đ: Ngày 1 tham quan chợ nổi; Ngày 2 đi miệt vườn. Món ngon: lẩu mắm, cá lóc nướng trui.",
+    "Phú Quốc: Bãi Sao, VinWonders, lặn ngắm san hô. Lịch trình 3N2Đ: Ngày 1 VinWonders, Safari; Ngày 2 bãi Sao, bãi Dài; Ngày 3 chợ đêm. Món ngon: ghẹ Hàm Ninh, gỏi cá trích.",
+    "Cà Mau: Mũi Cà Mau, rừng U Minh Hạ. Lịch trình 2N1Đ: Ngày 1 đi Mũi Cà Mau; Ngày 2 tham quan rừng U Minh Hạ. Món ngon: ba khía muối, lẩu mắm.",
+    "Bến Tre: Xứ dừa, cồn Phụng, du lịch miệt vườn. Lịch trình 2N1Đ: Ngày 1 tham quan cồn Phụng, ăn đặc sản từ dừa; Ngày 2 chèo xuồng kênh rạch. Món ngon: kẹo dừa, cá kho tộ."
 ]
 
 mock_docs = destinations_data
@@ -244,7 +244,7 @@ def index():
 def api_chat():
     data = request.json
     user_message = data.get("message", "")
-    chat_history = data.get("history", [])  # list of pairs [(q, a), ...]
+    chat_history = data.get("history", [])
 
     if not is_tourism_related(user_message):
         reply = "Tôi là chatbot về du lịch, hãy hỏi câu hỏi liên quan đến địa điểm, lịch trình du lịch ở Việt Nam."
@@ -291,6 +291,7 @@ def api_chat():
             args = {}
 
         dest = args.get("destination", "").strip()
+
         # If destination not in mock list, fallback to RAG
         if dest and dest not in DEST_NAMES:
             rag_answer, sources = fallback_rag(user_message, chat_history)
@@ -315,7 +316,7 @@ def api_chat():
     # else not function_call -> if model returned plain content, use it
     reply = getattr(message, "content", "") or ""
 
-    # if reply seems empty or "I don't know", fallback RAG
+    # Fallback RAG
     if not reply.strip() or "không biết" in reply.lower():
         rag_answer, sources = fallback_rag(user_message, chat_history)
         reply = rag_answer or reply or "Xin lỗi, tôi chưa có dữ liệu."

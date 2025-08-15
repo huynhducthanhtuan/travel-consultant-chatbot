@@ -72,7 +72,7 @@
     </div>
 
     <script>
-      const chatEl = document.getElementById("chat");
+      const chatElement = document.getElementById("chat");
       const txt = document.getElementById("txt");
       const send = document.getElementById("send");
       const clear = document.getElementById("clear");
@@ -84,15 +84,15 @@
         const div = document.createElement("div");
         div.className = "msg " + (who === "user" ? "user" : "bot");
         div.innerHTML = content.replace(/\n/g, "<br>");
-        chatEl.appendChild(div);
+        chatElement.appendChild(div);
 
         if (sources && sources.length) {
           const s = document.createElement("div");
           s.className = "sources";
           s.textContent = "Nguồn: " + JSON.stringify(sources);
-          chatEl.appendChild(s);
+          chatElement.appendChild(s);
         }
-        chatEl.scrollTop = chatEl.scrollHeight;
+        chatElement.scrollTop = chatElement.scrollHeight;
       }
 
       async function sendMessage() {
@@ -103,11 +103,11 @@
         txt.value = "";
 
         // Append - unappend temperary message
-        const loadingEl = document.createElement("div");
-        loadingEl.className = "msg bot";
-        loadingEl.textContent = "Đang trả lời...";
-        chatEl.appendChild(loadingEl);
-        chatEl.scrollTop = chatEl.scrollHeight;
+        const loadingElement = document.createElement("div");
+        loadingElement.className = "msg bot";
+        loadingElement.textContent = "Đang trả lời...";
+        chatElement.appendChild(loadingElement);
+        chatElement.scrollTop = chatElement.scrollHeight;
 
         try {
           const res = await fetch("/api/chat", {
@@ -117,7 +117,7 @@
           });
           const data = await res.json();
 
-          chatEl.removeChild(loadingEl);
+          chatElement.removeChild(loadingElement);
 
           appendMessage(
             data.reply || "Xin lỗi, lỗi server",
@@ -135,7 +135,7 @@
         if (e.key === "Enter") sendMessage();
       });
       clear.addEventListener("click", () => {
-        chatEl.innerHTML = "";
+        chatElement.innerHTML = "";
         history = [];
       });
     </script>
