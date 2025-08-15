@@ -14,11 +14,5 @@ How to run this application:
    py app.py
 ```
 
-or
-
-```bash
-   python3 app.py
-```
-
 3. Go to application
    http://127.0.0.1:5000
