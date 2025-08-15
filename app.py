@@ -311,6 +311,33 @@ app = Flask(__name__)
 # helper: list of destination names from mock_docs (left part before ":")
 # DEST_NAMES = [d.split(":")[0].strip() for d in mock_docs]
 
+def search_tourism(query, top_k=1):
+    client = OpenAI(
+        base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY_EBD3")
+    )
+
+    # Sinh embedding từ câu hỏi
+    query_emb = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=query
+    ).data[0].embedding
+ 
+    # Query Pinecone
+    results = index.query(
+        vector=query_emb,
+        top_k=top_k,
+        include_metadata=True
+    )
+ 
+    # Xử lý kết quả
+    response = []
+    for match in results["matches"]:
+        province = match["metadata"]["province"]
+        text = match["metadata"]["text"]
+        response.append(f"[{province}] {text}")
+    return "\n".join(response)
+
 def call_model_with_functions(messages):
     """
         Gọi AzureOpenAI client để model decide function call.
@@ -390,7 +417,7 @@ def is_vietnamese_language(text: str) -> bool:
         return True
 
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
 @app.route("/api/chat", methods=["POST"])
@@ -409,13 +436,17 @@ def api_chat():
         chat_history.append((user_message, reply))
         return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
+    # search in Pinecone
+    search_result = search_tourism(user_message, top_k=1)
+
     messages = [
         *few_shots,
         *message_history,
         {
             "role": "system",
-            "content": """
+            "content": f"""
                 Bạn là một hướng dẫn viên du lịch Việt Nam.
+                {f"Đây là dữ liệu du lịch lấy từ cơ sở dữ liệu: {search_result}" if search_result else ""}
                 Luôn trả lời thật chi tiết, bao gồm:
                 - Giới thiệu tổng quan điểm đến (lịch sử, văn hóa, khí hậu, điểm nổi bật).
                 - Các hoạt động gợi ý cho từng ngày kèm mô tả cụ thể (địa điểm, giờ đi, chi phí dự kiến, lưu ý đặc biệt).
@@ -427,6 +458,7 @@ def api_chat():
             """
         }
     ]
+    print(messages)
 
     for q, a in chat_history:
         messages.append({"role": "user", "content": q})
