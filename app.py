@@ -5,6 +5,7 @@ from langchain.vectorstores import FAISS
 from flask import Flask, render_template, request, jsonify
 from openai import AzureOpenAI
 from dotenv import load_dotenv
+import requests
 import random
 import json
 import os
@@ -113,6 +114,32 @@ def get_itinerary(destination: str, days: int) -> str:
         plan.append(f"Ngày {day}: {random.choice(activities)} tại {destination}")
     return "\n".join(plan)
 
+def get_weather_city(city: str) -> str:
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "q": city,
+        "appid": os.getenv("OPEN_WEATHER_MAP_API_KEY"),
+        "units": "metric",
+        "lang": "vi"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if response.status_code != 200:
+            print(f"Error: {data.get('message', 'Failed to fetch weather data')}")
+            return f"Error: {data.get('message', 'Failed to fetch weather data')}"
+
+        weather = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+        feels_like = data["main"]["feels_like"]
+        return f"Thời tiết ở thành phố {city} is {weather}, nhiệt độ là {temp}°C (cảm giác như {feels_like}°C)."
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return f"Error: {str(e)}"
+
 # Embeddings + FAISS
 embeddings = AzureOpenAIEmbeddings(
     model=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3"),
@@ -176,7 +203,16 @@ functions = [
             },
             "required": ["destination", "days"]
         }
-    }
+    },
+    {
+        "name": "get_weather_city",
+        "description": "Lấy thời tiết ở thành phố",
+        "parameters": {
+            "type": "object",
+            "properties": {"destination": {"type": "string"}},
+            "required": ["destination"]
+        }
+    },
 ]
 
 # Few-shot prompting
@@ -339,6 +375,9 @@ def api_chat():
         elif func_name == "get_itinerary":
             days = args.get("days", 1)
             result = get_itinerary(dest, days)
+        elif func_name == "get_weather_city":
+            days = args.get("days", 1)
+            result = get_weather_city(dest, days)
         else:
             result = "Không tìm thấy chức năng."
 
