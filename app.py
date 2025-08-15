@@ -281,13 +281,19 @@ def fallback_rag(question, chat_history):
 
 def is_tourism_related(question: str) -> bool:
     """
-    Kiểm tra xem câu hỏi có liên quan đến du lịch Việt Nam không.
+    Kiểm tra xem câu hỏi có liên quan đến du lịch Việt Nam hoặc thời tiết tại các tỉnh/thành Việt Nam không.
     Trả về True nếu liên quan, False nếu không.
     """
     check_messages = [
         {
             "role": "system",
-            "content": "Bạn là bộ lọc phân loại câu hỏi. Trả lời chỉ 'yes' nếu câu hỏi liên quan đến du lịch Việt Nam (địa điểm, lịch trình, ẩm thực, mẹo du lịch). Trả lời 'no' nếu không liên quan."
+            "content": (
+                "Bạn là bộ lọc phân loại câu hỏi. "
+                "Trả lời chỉ 'yes' nếu câu hỏi liên quan đến: "
+                "1) Du lịch Việt Nam (địa điểm, lịch trình, ẩm thực, mẹo du lịch) "
+                "hoặc 2) Thời tiết ở các tỉnh/thành phố của Việt Nam. "
+                "Trả lời 'no' nếu không liên quan."
+            )
         },
         {"role": "user", "content": question}
     ]
@@ -407,8 +413,7 @@ def api_chat():
             days = args.get("days", 1)
             result = get_itinerary(dest, days)
         elif func_name == "get_weather_city":
-            days = args.get("days", 1)
-            result = get_weather_city(dest, days)
+            result = get_weather_city(dest)
         else:
             result = "Không tìm thấy chức năng."
 
