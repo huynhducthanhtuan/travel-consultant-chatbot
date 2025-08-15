@@ -85,6 +85,7 @@ message_history = [
             - Mẹo và kinh nghiệm khi đi (thời tiết, phương tiện, vé tham quan).
             Không được trả lời quá ngắn gọn hay chỉ liệt kê.
             Trình bày rõ ràng theo từng mục và ngày.
+            Trả lời chỉ bằng văn bản thuần (plain text), không dùng Markdown, không dùng ký hiệu #, -, *, **.
         """
     }
 ]
@@ -189,11 +190,11 @@ few_shots = [
         "role": "assistant",
         "content": """
             Đà Nẵng là thành phố biển nổi tiếng miền Trung, có cầu Rồng, biển Mỹ Khê, Bà Nà Hills, ẩm thực phong phú.
-            **Lịch trình gợi ý:**
+            Lịch trình gợi ý:
             Ngày 1: Tham quan Bà Nà Hills (vé 900k), buổi chiều dạo biển Mỹ Khê, tối ăn hải sản ở Bé Mặn.
             Ngày 2: Sáng tham quan Ngũ Hành Sơn, chiều đi Hội An (vé vào phố cổ 80k), tối ngắm đèn lồng.
             Ngày 3: Sáng chợ Hàn mua quà, ăn mì Quảng ếch Bà Mua, ra sân bay.
-            **Mẹo:** Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
+            Mẹo: Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
         """
     },
     # Ví dụ 2: hỏi giá vé
