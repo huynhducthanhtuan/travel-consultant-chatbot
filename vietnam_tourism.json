@@ -1,0 +1,143 @@
+{
+  "An Giang": ["Núi Sam", "Rừng tràm Trà Sư", "Miếu Bà Chúa Xứ"],
+  "Bà Rịa - Vũng Tàu": [
+    "Bãi Sau Vũng Tàu",
+    "Ngọn hải đăng Vũng Tàu",
+    "Côn Đảo"
+  ],
+  "Bạc Liêu": [
+    "Nhà công tử Bạc Liêu",
+    "Nhà thờ Tắc Sậy",
+    "Cánh đồng điện gió Bạc Liêu"
+  ],
+  "Bắc Giang": ["Tây Yên Tử", "Đồng Cao", "Chùa Vĩnh Nghiêm"],
+  "Bắc Kạn": ["Hồ Ba Bể", "Động Puông", "Thác Đầu Đẳng"],
+  "Bắc Ninh": ["Đền Đô", "Chùa Dâu", "Làng tranh Đông Hồ"],
+  "Bến Tre": ["Cồn Phụng", "Làng hoa Chợ Lách", "Vườn dừa"],
+  "Bình Dương": [
+    "Chùa Bà Thiên Hậu",
+    "KDL Đại Nam",
+    "Làng sơn mài Tương Bình Hiệp"
+  ],
+  "Bình Định": ["Eo Gió", "Kỳ Co", "Tháp Đôi Quy Nhơn"],
+  "Bình Phước": ["Vườn quốc gia Bù Gia Mập", "Sóc Bom Bo", "Núi Bà Rá"],
+  "Bình Thuận": ["Mũi Né", "Bàu Trắng", "Hải đăng Kê Gà"],
+  "Cà Mau": ["Mũi Cà Mau", "Rừng U Minh Hạ", "Hòn Đá Bạc"],
+  "Cao Bằng": ["Thác Bản Giốc", "Động Ngườm Ngao", "Khu di tích Pác Bó"],
+  "Cần Thơ": ["Bến Ninh Kiều", "Chợ nổi Cái Răng", "Nhà cổ Bình Thủy"],
+  "Đà Nẵng": [
+    "Bà Nà Hills",
+    "Công viên suối khoáng nóng Núi Thần Tài",
+    "Ngũ Hành Sơn",
+    "Cầu Rồng"
+  ],
+  "Đắk Lắk": ["Buôn Đôn", "Hồ Lắk", "Thác Dray Nur"],
+  "Đắk Nông": ["Công viên địa chất Đắk Nông", "Thác Dray Sáp", "Hồ Tà Đùng"],
+  "Điện Biên": ["Đồi A1", "Hầm Đờ Cát", "Hồ Pá Khoang"],
+  "Đồng Nai": [
+    "Vườn quốc gia Cát Tiên",
+    "Khu du lịch Bửu Long",
+    "Đảo Ó - Đồng Trường"
+  ],
+  "Đồng Tháp": [
+    "Vườn quốc gia Tràm Chim",
+    "Làng hoa Sa Đéc",
+    "Khu di tích Gò Tháp"
+  ],
+  "Gia Lai": ["Biển Hồ (Hồ T’Nưng)", "Thác Phú Cường", "Núi lửa Chư Đăng Ya"],
+  "Hà Giang": ["Cao nguyên đá Đồng Văn", "Đèo Mã Pì Lèng", "Cột cờ Lũng Cú"],
+  "Hà Nam": ["Chùa Tam Chúc", "Ngũ Động Sơn", "Kẽm Trống"],
+  "Hà Nội": [
+    "Hồ Gươm",
+    "Văn Miếu - Quốc Tử Giám",
+    "Hoàng thành Thăng Long",
+    "Phố cổ Hà Nội"
+  ],
+  "Hà Tĩnh": ["Biển Thiên Cầm", "Ngã ba Đồng Lộc", "Chùa Hương Tích (Hà Tĩnh)"],
+  "Hải Dương": [
+    "Khu di tích Côn Sơn - Kiếp Bạc",
+    "Đảo Cò Chi Lăng Nam",
+    "Văn Miếu Mao Điền"
+  ],
+  "Hải Phòng": ["Đảo Cát Bà", "Bãi biển Đồ Sơn", "KDL Hòn Dấu"],
+  "Hậu Giang": [
+    "Khu bảo tồn Lung Ngọc Hoàng",
+    "Chợ nổi Ngã Bảy",
+    "KDL sinh thái Tây Đô"
+  ],
+  "Hòa Bình": ["Thung Nai", "Lòng hồ Hòa Bình", "Mai Châu"],
+  "Hưng Yên": ["Phố Hiến", "Làng Nôm", "Chùa Chuông"],
+  "Khánh Hòa": ["Vịnh Nha Trang", "VinWonders Nha Trang", "Đảo Bình Ba"],
+  "Kiên Giang": ["Đảo Phú Quốc", "Hà Tiên - Thạch Động", "Quần đảo Nam Du"],
+  "Kon Tum": ["Nhà thờ gỗ Kon Tum", "Măng Đen", "Cầu treo Kon Klor"],
+  "Lai Châu": ["Đỉnh Putaleng", "Cao nguyên Sìn Hồ", "Thác Tác Tình"],
+  "Lâm Đồng": [
+    "Đà Lạt - Hồ Xuân Hương",
+    "Thung lũng Tình Yêu",
+    "Núi Langbiang"
+  ],
+  "Lạng Sơn": ["Khu du lịch Mẫu Sơn", "Ải Chi Lăng", "Núi Tô Thị - Chùa Tiên"],
+  "Lào Cai": ["Sa Pa", "Đỉnh Fansipan", "Cầu kính Rồng Mây"],
+  "Long An": ["Làng nổi Tân Lập", "Chùa Tôn Thạnh", "KDL Cát Tường Phú Sinh"],
+  "Nam Định": ["Phủ Dầy", "Nhà thờ đổ Hải Lý", "Vườn quốc gia Xuân Thủy"],
+  "Nghệ An": ["Làng Sen - Quê Bác", "Bãi Lữ", "Biển Cửa Lò"],
+  "Ninh Bình": [
+    "Quần thể Tràng An",
+    "Tam Cốc - Bích Động",
+    "Chùa Bái Đính",
+    "Cố đô Hoa Lư"
+  ],
+  "Ninh Thuận": ["Vịnh Vĩnh Hy", "Tháp Po Klong Garai", "Hang Rái"],
+  "Phú Thọ": [
+    "Khu di tích Đền Hùng",
+    "Ao Giời - Suối Tiên",
+    "Suối khoáng Thanh Thủy"
+  ],
+  "Phú Yên": ["Gành Đá Đĩa", "Bãi Môn - Mũi Điện", "Đầm Ô Loan"],
+  "Quảng Bình": [
+    "Vườn quốc gia Phong Nha - Kẻ Bàng",
+    "Hang Sơn Đoòng (vùng lân cận)",
+    "Biển Nhật Lệ"
+  ],
+  "Quảng Nam": ["Phố cổ Hội An", "Thánh địa Mỹ Sơn", "Cù Lao Chàm"],
+  "Quảng Ngãi": ["Đảo Lý Sơn", "Biển Sa Huỳnh", "Thác Trắng Minh Long"],
+  "Quảng Ninh": ["Vịnh Hạ Long", "Yên Tử", "Bình Liêu"],
+  "Quảng Trị": [
+    "Thành cổ Quảng Trị",
+    "Địa đạo Vịnh Mốc",
+    "Cầu Hiền Lương - Sông Bến Hải"
+  ],
+  "Sóc Trăng": ["Chùa Dơi", "Chùa Kh'leang", "Chợ nổi Ngã Năm"],
+  "Sơn La": ["Cao nguyên Mộc Châu", "Thác Dải Yếm", "Đồi chè Mộc Châu"],
+  "Tây Ninh": ["Núi Bà Đen", "Tòa thánh Cao Đài", "Hồ Dầu Tiếng"],
+  "Thái Bình": ["Biển Đồng Châu", "Chùa Keo", "Làng vườn Bách Thuận"],
+  "Thái Nguyên": [
+    "Hồ Núi Cốc",
+    "ATK Định Hóa",
+    "Hang Phượng Hoàng - Suối Mỏ Gà"
+  ],
+  "Thanh Hóa": ["Pù Luông", "Biển Sầm Sơn", "Thành nhà Hồ"],
+  "Thừa Thiên Huế": ["Quần thể di tích Cố đô Huế", "Đầm Lập An", "Lăng Tự Đức"],
+  "Tiền Giang": ["Chợ nổi Cái Bè", "Cù lao Thới Sơn", "Trại rắn Đồng Tâm"],
+  "TP Hồ Chí Minh": [
+    "Dinh Độc Lập",
+    "Nhà thờ Đức Bà",
+    "Chợ Bến Thành",
+    "Địa đạo Củ Chi"
+  ],
+  "Sài Gòn": [
+    "Dinh Độc Lập",
+    "Nhà thờ Đức Bà",
+    "Chợ Bến Thành",
+    "Địa đạo Củ Chi"
+  ],
+  "Trà Vinh": ["Ao Bà Om", "Chùa Âng", "Biển Ba Động"],
+  "Tuyên Quang": [
+    "Na Hang - Lâm Bình",
+    "Lễ hội Thành Tuyên",
+    "Khu di tích Tân Trào"
+  ],
+  "Vĩnh Long": ["KDL Vinh Sang", "Cù lao An Bình", "Chợ nổi Trà Ôn"],
+  "Vĩnh Phúc": ["Tam Đảo", "Thiền viện Trúc Lâm Tây Thiên", "Hồ Đại Lải"],
+  "Yên Bái": ["Mù Cang Chải", "Suối Giàng", "Hồ Thác Bà"]
+}
