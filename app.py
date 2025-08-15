@@ -211,6 +211,31 @@ def fallback_rag(question, chat_history):
     # retrieval_chain trả về dict: {'answer': ..., 'source_documents': [...]}
     return rag.get("answer", "").strip(), rag.get("source_documents", [])
 
+def is_tourism_related(question: str) -> bool:
+    """
+    Kiểm tra xem câu hỏi có liên quan đến du lịch Việt Nam không.
+    Trả về True nếu liên quan, False nếu không.
+    """
+    check_messages = [
+        {
+            "role": "system",
+            "content": "Bạn là bộ lọc phân loại câu hỏi. Trả lời chỉ 'yes' nếu câu hỏi liên quan đến du lịch Việt Nam (địa điểm, lịch trình, ẩm thực, mẹo du lịch). Trả lời 'no' nếu không liên quan."
+        },
+        {"role": "user", "content": question}
+    ]
+    try:
+        resp = client.chat.completions.create(
+            model=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),
+            messages=check_messages,
+            temperature=0,
+            max_tokens=2
+        )
+        answer = resp.choices[0].message.content.strip().lower()
+        return answer.startswith("y")
+    except Exception as e:
+        print("Error in topic classification:", e)
+        return True
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -220,6 +245,11 @@ def api_chat():
     data = request.json
     user_message = data.get("message", "")
     chat_history = data.get("history", [])  # list of pairs [(q, a), ...]
+
+    if not is_tourism_related(user_message):
+        reply = "Tôi là chatbot về du lịch, hãy hỏi câu hỏi liên quan đến địa điểm, lịch trình du lịch ở Việt Nam."
+        chat_history.append((user_message, reply))
+        return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
     messages = [
         *few_shots,
