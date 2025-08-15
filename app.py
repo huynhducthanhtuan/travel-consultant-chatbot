@@ -61,6 +61,7 @@ if stats["total_vector_count"] == 0:
 else:
     print("Dữ liệu đã tồn tại, bỏ qua upsert")
 
+# Short-term memory message
 message_history = [
     {
         "role": "system",
@@ -78,7 +79,7 @@ message_history = [
     }
 ]
 
-# Mock functions
+# Functions calling
 def get_flight_price(destination: str) -> str:
     price = random.randint(1500000, 5000000)
     return f"Giá vé khứ hồi đến {destination} khoảng {price:,} VND."
@@ -127,6 +128,68 @@ def get_weather_city(city: str) -> str:
         print(f"Error: {str(e)}")
         return f"Error: {str(e)}"
 
+def usd_to_vnd(usd_price):
+    try:
+        usd_value = float(usd_price)
+        vnd_value = usd_value * 24500
+        return f"{vnd_value:,.0f} VND"
+    except Exception:
+        return None
+
+def get_hotel_price(destination: str) -> str:
+    url = "https://agoda-travel.p.rapidapi.com/agoda-app/hotels/search-day-use-by-location"
+    querystring = {"location": destination}
+ 
+    headers = {
+        "x-rapidapi-host": "agoda-travel.p.rapidapi.com",
+        "x-rapidapi-key": os.getenv("RAPIDAPI_KEY"),
+    }
+ 
+    print(f"Fetching hotel prices for {destination} from {url}")
+    try:
+        res = requests.get(url, headers=headers, params=querystring, timeout=10)
+ 
+        if res.status_code != 200:
+            return f"Xin lỗi, không lấy được giá khách sạn ở {destination}."
+ 
+        data = res.json()
+        hotels = data.get("data", {}).get("properties", [])
+        if not hotels:
+            return f"Không tìm thấy khách sạn nào ở {destination}."
+ 
+        hotel_list = []
+        for h in hotels[:3]:
+            name = (
+                h.get("content", {})
+                .get("informationSummary", {})
+                .get("localeName", "Không rõ tên")
+            )
+            try:
+                price = (
+                    h.get("pricing", {})
+                    .get("offers", [])[0]
+                    .get("roomOffers", [])[0]
+                    .get("room", {})
+                    .get("pricing", [])[0]
+                    .get("price", {})
+                    .get("perBook", {})
+                    .get("inclusive", {})
+                    .get("display")
+                )
+            except:
+                price = None
+ 
+            if price:
+                price_vnd = usd_to_vnd(price)
+                hotel_list.append(f"{name}: {price_vnd}/đêm")
+            else:
+                hotel_list.append(f"{name}: Giá chưa có")
+ 
+        return f"Giá khách sạn ở {destination} (tham khảo):\n" + "\n".join(hotel_list)
+ 
+    except Exception as e:
+        return f"Lỗi khi lấy dữ liệu giá khách sạn: {str(e)}"
+
 # Embeddings
 # embeddings = AzureOpenAIEmbeddings(
 #     model=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3"),
@@ -161,7 +224,7 @@ client = AzureOpenAI(
     azure_deployment=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4")
 )
 
-# Functions schema
+# Functions calling schema
 functions = [
     {
         "name": "get_flight_price",
@@ -268,6 +331,7 @@ def call_model_with_functions(messages):
 #     # retrieval_chain trả về dict: {'answer': ..., 'source_documents': [...]}
 #     return rag.get("answer", "").strip(), rag.get("source_documents", [])
 
+# Helper functions
 def is_tourism_related(question: str) -> bool:
     """
     Kiểm tra xem câu hỏi có liên quan đến du lịch Việt Nam hoặc thời tiết tại các tỉnh/thành Việt Nam không.
@@ -403,6 +467,8 @@ def api_chat():
             result = get_itinerary(dest, days)
         elif func_name == "get_weather_city":
             result = get_weather_city(dest)
+        elif func_name == "get_hotel_price":
+            result = get_hotel_price(dest)
         else:
             result = "Không tìm thấy chức năng."
 
