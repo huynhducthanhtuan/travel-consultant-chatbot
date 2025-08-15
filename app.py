@@ -1,3 +1,4 @@
+# from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.vectorstores import FAISS
@@ -41,6 +42,36 @@ destinations_data = [
 ]
 
 mock_docs = destinations_data
+
+# USING PINECONE INSTEAD OF FAISS
+# ebd_client = AzureOpenAI( 
+#     api_version="2024-07-01-preview", 
+#     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"), 
+#     api_key=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3")
+# ) 
+# index_name = "destinations"
+# pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY")) 
+
+# if index_name not in [index["name"] for index in pc.list_indexes()]: 
+#     pc.create_index(name=index_name, dimension=1536, spec=ServerlessSpec(cloud="aws", region="us-east-1")) 
+        
+# index = pc.Index(index_name) 
+
+# vectors = []
+# for item in destinations_data:
+#     emb = ebd_client.embeddings.create(
+#         model=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3"),
+#         input=item["text"]
+#     ).data[0].embedding
+#     vectors.append({
+#         "id": item["id"],
+#         "values": emb,
+#         "metadata": {"text": item["text"]}
+#     })
+
+# # Upsert vào Pinecone
+# if len(vectors) > 0:
+#     index.upsert(vectors)
 
 message_history = [
     {
