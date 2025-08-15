@@ -1,11 +1,8 @@
-# app.py
 import os
 import json
 import random
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
-
-# LangChain + FAISS + Azure client
 from langchain.vectorstores import FAISS
 from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
@@ -13,11 +10,8 @@ from openai import AzureOpenAI
 
 load_dotenv()
 
-# -------------------------
-# Mock data (bạn có thể mở rộng)
-# -------------------------
+# Mock data
 destinations_data = [
-    # Miền Bắc
     "Hà Nội: Thủ đô ngàn năm văn hiến, hồ Hoàn Kiếm, phố cổ, Văn Miếu Quốc Tử Giám.",
     "Hạ Long: Di sản thiên nhiên thế giới, nổi tiếng với hàng ngàn đảo đá vôi và hang động kỳ thú.",
     "Sapa: Thị trấn vùng cao, khí hậu mát mẻ, ruộng bậc thang và đỉnh Fansipan.",
@@ -32,14 +26,12 @@ destinations_data = [
     "Nam Định: Nhà thờ Phú Nhai, biển Thịnh Long.",
     "Thái Bình: Biển Đồng Châu, làng vườn Bách Thuận.",
     "Cao Bằng: Thác Bản Giốc, động Ngườm Ngao.",
-    # Miền Trung
     "Huế: Cố đô, Đại Nội, lăng tẩm vua Nguyễn.",
     "Đà Nẵng: Bà Nà Hills, cầu Rồng, biển Mỹ Khê.",
     "Hội An: Phố cổ UNESCO, đèn lồng, ẩm thực đặc sắc.",
     "Quảng Bình: Hang Sơn Đoòng, động Phong Nha - Kẻ Bàng.",
     "Nha Trang: Thành phố biển, Tháp Bà Ponagar, đảo Hòn Mun.",
     "Đà Lạt: Thành phố ngàn hoa, hồ Xuân Hương, vườn dâu.",
-    # Miền Nam
     "TP.HCM: Chợ Bến Thành, Nhà thờ Đức Bà, phố đi bộ Nguyễn Huệ.",
     "Vũng Tàu: Bãi Sau, bãi Trước, tượng Chúa Kitô Vua.",
     "Cần Thơ: Chợ nổi Cái Răng, miệt vườn trái cây.",
@@ -66,9 +58,7 @@ message_history = [
     }
 ]
 
-# -------------------------
 # Mock functions
-# -------------------------
 def get_flight_price(destination: str) -> str:
     price = random.randint(1500000, 5000000)
     return f"Giá vé khứ hồi đến {destination} khoảng {price:,} VND."
@@ -91,9 +81,7 @@ def get_itinerary(destination: str, days: int) -> str:
         plan.append(f"Ngày {day}: {random.choice(activities)} tại {destination}")
     return "\n".join(plan)
 
-# -------------------------
-# Embeddings + FAISS (reuse code)
-# -------------------------
+# Embeddings + FAISS
 embeddings = AzureOpenAIEmbeddings(
     model=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY_EBD3"),
@@ -103,9 +91,7 @@ embeddings = AzureOpenAIEmbeddings(
 
 vectorstore = FAISS.from_texts(mock_docs, embedding=embeddings)
 
-# -------------------------
 # LangChain Azure Chat (used for RAG conversational retriever)
-# -------------------------
 chat = AzureChatOpenAI(
     deployment_name=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY_GPT4"),
@@ -119,9 +105,7 @@ retrieval_chain = ConversationalRetrievalChain.from_llm(
     return_source_documents=True
 )
 
-# -------------------------
-# AzureOpenAI client (openai v1.98) for function-calling
-# -------------------------
+# AzureOpenAI client
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY_GPT4"),
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
@@ -129,9 +113,7 @@ client = AzureOpenAI(
     azure_deployment=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4")
 )
 
-# -------------------------
-# Functions schema (for model)
-# -------------------------
+# Functions schema
 functions = [
     {
         "name": "get_flight_price",
@@ -165,7 +147,7 @@ functions = [
     }
 ]
 
-# Few-shot prompting: ví dụ hội thoại mẫu
+# Few-shot prompting
 few_shots = [
     # Ví dụ 1: hỏi về địa điểm
     {
@@ -175,12 +157,12 @@ few_shots = [
     {
         "role": "assistant",
         "content": """
-Đà Nẵng là thành phố biển nổi tiếng miền Trung, có cầu Rồng, biển Mỹ Khê, Bà Nà Hills, ẩm thực phong phú.
-**Lịch trình gợi ý:**
-Ngày 1: Tham quan Bà Nà Hills (vé 900k), buổi chiều dạo biển Mỹ Khê, tối ăn hải sản ở Bé Mặn.
-Ngày 2: Sáng tham quan Ngũ Hành Sơn, chiều đi Hội An (vé vào phố cổ 80k), tối ngắm đèn lồng.
-Ngày 3: Sáng chợ Hàn mua quà, ăn mì Quảng ếch Bà Mua, ra sân bay.
-**Mẹo:** Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
+            Đà Nẵng là thành phố biển nổi tiếng miền Trung, có cầu Rồng, biển Mỹ Khê, Bà Nà Hills, ẩm thực phong phú.
+            **Lịch trình gợi ý:**
+            Ngày 1: Tham quan Bà Nà Hills (vé 900k), buổi chiều dạo biển Mỹ Khê, tối ăn hải sản ở Bé Mặn.
+            Ngày 2: Sáng tham quan Ngũ Hành Sơn, chiều đi Hội An (vé vào phố cổ 80k), tối ngắm đèn lồng.
+            Ngày 3: Sáng chợ Hàn mua quà, ăn mì Quảng ếch Bà Mua, ra sân bay.
+            **Mẹo:** Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
         """
     },
     # Ví dụ 2: hỏi giá vé
@@ -203,10 +185,7 @@ Ngày 3: Sáng chợ Hàn mua quà, ăn mì Quảng ếch Bà Mua, ra sân bay.
     }
 ]
 
-
-# -------------------------
 # Flask app
-# -------------------------
 app = Flask(__name__)
 
 # helper: list of destination names from mock_docs (left part before ":")
@@ -214,11 +193,11 @@ DEST_NAMES = [d.split(":")[0].strip() for d in mock_docs]
 
 def call_model_with_functions(messages):
     """
-    Gọi AzureOpenAI client để model decide function call.
-    Trả về message object (choices[0].message)
+        Gọi AzureOpenAI client để model decide function call.
+        Trả về message object (choices[0].message)
     """
     resp = client.chat.completions.create(
-        model=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),  # dùng deployment name trên Azure
+        model=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),
         messages=messages,
         functions=functions,
         function_call="auto",
@@ -242,7 +221,6 @@ def api_chat():
     user_message = data.get("message", "")
     chat_history = data.get("history", [])  # list of pairs [(q, a), ...]
 
-    # build messages for model (OpenAI SDK format)
     messages = [
         *few_shots,
         *message_history,
@@ -257,6 +235,7 @@ def api_chat():
                 - Mẹo và kinh nghiệm khi đi (thời tiết, phương tiện, vé tham quan).
                 Không được trả lời quá ngắn gọn hay chỉ liệt kê.
                 Trình bày rõ ràng theo từng mục và ngày.
+                Trả lời chỉ bằng văn bản thuần (plain text), không dùng Markdown, không dùng ký hiệu #, -, *, **.
             """
         }
     ]
@@ -305,6 +284,7 @@ def api_chat():
 
     # else not function_call -> if model returned plain content, use it
     reply = getattr(message, "content", "") or ""
+
     # if reply seems empty or "I don't know", fallback RAG
     if not reply.strip() or "không biết" in reply.lower():
         rag_answer, sources = fallback_rag(user_message, chat_history)
@@ -315,7 +295,5 @@ def api_chat():
     chat_history.append((user_message, reply))
     return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
-
 if __name__ == "__main__":
-    # set FLASK_ENV=development nếu muốn debug
     app.run(host="0.0.0.0", port=5000, debug=True)
