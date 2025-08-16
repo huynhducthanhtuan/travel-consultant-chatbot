@@ -517,8 +517,6 @@ def api_chat():
             result = get_itinerary(dest, days)
         elif func_name == "get_weather_city":
             result = get_weather_city(dest)
-        elif func_name == "get_hotel_price":
-            result = get_hotel_price(dest)
         else:
             result = "Không tìm thấy chức năng."
 
