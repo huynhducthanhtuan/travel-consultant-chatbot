@@ -178,6 +178,7 @@ def get_weather_city(city: str) -> str:
     """
  
     url = "https://api.openweathermap.org/data/2.5/weather"
+    # url = "https://api.openweathermap.org/data/2.5/onecall"
     params = {
         "q": city,
         "appid": os.getenv("OPEN_WEATHER_MAP_API_KEY"),
