@@ -2,7 +2,10 @@ from pinecone import Pinecone, ServerlessSpec
 from flask import Flask, render_template, request, jsonify
 from openai import AzureOpenAI, OpenAI
 from dotenv import load_dotenv
-from api_service import get_flight_price
+from langchain_openai import AzureChatOpenAI
+from langchain.tools import tool
+from langchain_tavily import TavilySearch
+from langgraph.prebuilt import create_react_agent
 import requests
 import random
 import json
@@ -78,7 +81,74 @@ message_history = [
 ]
 
 # Functions calling
+@tool
+def get_flight_price(origin: str, destination: str, trip_type: str, currency: str) -> str:
+    """
+    Get a simulated round-trip flight price to a given destination.
+ 
+    Args:
+        origin (str): The name of the origin city or country.
+        destination (str): The name of the destination city or country.
+        trip_type (str): Loại chuyến đi, nhận một trong hai giá trị:
+            - "one_way"  : chuyến bay một chiều
+            - "round_trip": chuyến bay khứ hồi
+        currency (str): Đơn vị tiền tệ muốn hiển thị giá (mặc định là "VND").
+ 
+    Returns:
+        str: A formatted string with the estimated round-trip price in VND.
+    """
+    
+    api_endpoint = "https://www.mocky.io/v2/5c3c7d2d300000980a055e76"  # Thay bằng URL Mocky.io thực tế
+    trip_name = "khứ hồi" if trip_type == "round_trip" else "một chiều"
+    
+    try:
+        response = requests.get(api_endpoint, timeout=5)
+        response.raise_for_status()
+        
+        data = response.json()
+        flights = data.get("flights", [])
+        # Tìm chuyến bay khớp với origin, destination, và trip_type
+        for flight in flights:
+            if (flight.get("origin") == origin and 
+                flight.get("destination") == destination and 
+                flight.get("trip_type") == trip_type):
+                price = flight.get("price", random.randint(1500000, 5000000))
+                return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {price:,} {currency}."
+        
+        # Nếu không tìm thấy chuyến bay khớp
+        return f"Không tìm thấy chuyến bay {trip_name} từ {origin} đến {destination}."
+    
+    except requests.exceptions.RequestException as e:
+        try:
+            # Fallback: Read from local mock_data.json
+            with open(os.path.join("data", "mock_data.json"), "r", encoding="utf-8") as file:
+                data = json.load(file)
+            flights = data.get("flights", [])
+            for flight in flights:
+                if (flight.get("origin") == origin and 
+                    flight.get("destination") == destination and 
+                    flight.get("trip_type") == trip_type):
+                    price = flight.get("price", random.randint(1500000, 5000000))
+                    return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {price} {currency}."
+            price = random.randint(1500000, 5000000)
+            return f"Không tìm thấy chuyến bay {trip_name} từ {origin} đến {destination}."
+        
+        except (FileNotFoundError, json.JSONDecodeError) as file_error:
+            return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {random.randint(1500000, 5000000):,} {currency} (dữ liệu dự phòng do lỗi khi đọc file mock_data.json: {str(file_error)})." 
+
+@tool
 def get_itinerary(destination: str, days: int) -> str:
+    """
+    Generate a simple travel itinerary for a given destination and number of days.
+ 
+    Args:
+        destination (str): The name of the destination city or country.
+        days (int): Number of days for the itinerary.
+ 
+    Returns:
+        str: A multi-line string describing daily activities at the destination.
+    """
+ 
     activities = [
         "Tham quan địa danh nổi tiếng",
         "Thưởng thức đặc sản địa phương",
@@ -91,8 +161,20 @@ def get_itinerary(destination: str, days: int) -> str:
     for day in range(1, max(1, int(days))+1):
         plan.append(f"Ngày {day}: {random.choice(activities)} tại {destination}")
     return "\n".join(plan)
-
+ 
+@tool
 def get_weather_city(city: str) -> str:
+    """
+    Fetch current weather information for a given city using the OpenWeatherMap API.
+ 
+    Args:
+        city (str): The name of the city to get weather information for.
+ 
+    Returns:
+        str: A formatted string describing the weather, temperature, and "feels like" temperature.
+             If an error occurs, returns an error message.
+    """
+ 
     url = "https://api.openweathermap.org/data/2.5/weather"
     params = {
         "q": city,
@@ -100,33 +182,57 @@ def get_weather_city(city: str) -> str:
         "units": "metric",
         "lang": "vi"
     }
-
+ 
     try:
         response = requests.get(url, params=params)
         data = response.json()
-
+ 
         if response.status_code != 200:
             print(f"Error: {data.get('message', 'Failed to fetch weather data')}")
             return f"Error: {data.get('message', 'Failed to fetch weather data')}"
-
+ 
         weather = data["weather"][0]["description"]
         temp = data["main"]["temp"]
         feels_like = data["main"]["feels_like"]
         return f"Thời tiết ở thành phố {city} là {weather}, nhiệt độ là {temp}°C (cảm giác như {feels_like}°C)."
-
+ 
     except Exception as e:
         print(f"Error: {str(e)}")
         return f"Error: {str(e)}"
-
-def usd_to_vnd(usd_price):
+   
+@tool
+def usd_to_vnd(usd_price: float) -> str | None:
+    """
+    Convert a given USD amount to VND using a fixed exchange rate.
+ 
+    Args:
+        usd_price (float): The amount in USD to convert.
+ 
+    Returns:
+        str | None: The converted amount formatted in VND (e.g., "24,500 VND").
+                    Returns None if the input cannot be converted to float.
+    """
     try:
         usd_value = float(usd_price)
-        vnd_value = usd_value * 24500
+        vnd_value = usd_value * 24_500
         return f"{vnd_value:,.0f} VND"
     except Exception:
         return None
-
+   
+@tool
 def get_hotel_price(destination: str) -> str:
+    """
+    Fetch hotel prices for a given destination using Agoda's RapidAPI.
+ 
+    Args:
+        destination (str): The name of the destination city.
+ 
+    Returns:
+        str: A formatted list of up to 3 hotels with their prices in VND.
+             If no hotels or prices are found, returns a fallback message.
+             If an error occurs, returns an error message.
+    """
+   
     url = "https://agoda-travel.p.rapidapi.com/agoda-app/hotels/search-day-use-by-location"
     querystring = {"location": destination}
  
@@ -403,15 +509,45 @@ def is_vietnamese_language(text: str) -> bool:
         # Nếu lỗi thì cho qua (hoặc mặc định False)
         return True
 
+# LangChain tools
+tavily_search_tool = TavilySearch(
+    max_results=1,
+    topic="general",
+)
+llm = AzureChatOpenAI(
+    azure_deployment=os.getenv("AZURE_DEPLOYMENT_NAME_GPT4"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_version="2024-07-01-preview",
+    api_key=os.getenv("AZURE_OPENAI_API_KEY_GPT4"),
+)
+tools = [
+    get_flight_price,
+    get_hotel_price,
+    get_weather_city,
+    get_itinerary,
+    usd_to_vnd,
+    tavily_search_tool
+]
+agent = create_react_agent(
+    model=llm,
+    tools=tools,
+)
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
+# Lưu lịch sử chat theo session_id (demo)
+chat_histories = {}
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     data = request.json
     user_message = data.get("message", "")
     chat_history = data.get("history", [])
+    session_id = data.get("session_id", "default")
+    user_input = data.get("message", "")
+    history = chat_histories.get(session_id, [])
+    history.append({"role": "user", "content": user_input})
 
     if not is_vietnamese_language(user_message):
         reply = "Vui lòng hỏi đáp bằng tiếng Việt."
@@ -459,36 +595,11 @@ def api_chat():
 
     # if model wants to call function
     if getattr(message, "function_call", None):
-        func_name = message.function_call.name
-        # arguments is string JSON
-        try:
-            args = json.loads(message.function_call.arguments)
-        except Exception:
-            args = {}
+        response = agent.invoke({"messages": history})
+        ai_reply = response["messages"][-1].content
 
-        # Lấy điểm đi - điểm đến khi tìm vé máy bay
-        dest = args.get("destination", "").strip()
-        origin = args.get("origin", "").strip()
-        trip_type = args.get("trip_type", "").strip()
-
-        # function calling
-        if func_name == "get_flight_price":
-            if not origin:  # Nếu không có điểm đi, yêu cầu cung cấp
-                reply = "Vui lòng cung cấp điểm khởi hành (ví dụ: Sài Gòn) để tra giá vé máy bay."
-            else:
-                result = get_flight_price(origin, dest, trip_type, "VND")
-        elif func_name == "get_hotel_price":
-            result = get_hotel_price(dest)
-        elif func_name == "get_itinerary":
-            days = args.get("days", 1)
-            result = get_itinerary(dest, days)
-        elif func_name == "get_weather_city":
-            result = get_weather_city(dest)
-        else:
-            result = "Không tìm thấy chức năng."
-
-        chat_history.append((user_message, result))
-        return jsonify({"reply": result, "sources": [], "history": chat_history})
+        chat_history.append((user_message, ai_reply))
+        return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
 
     # else not function_call -> if model returned plain content, use it
     reply = getattr(message, "content", "") or ""
