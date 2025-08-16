@@ -2,6 +2,7 @@ from pinecone import Pinecone, ServerlessSpec
 from flask import Flask, render_template, request, jsonify
 from openai import AzureOpenAI, OpenAI
 from dotenv import load_dotenv
+from api_service import get_flight_price
 import requests
 import random
 import json
@@ -77,10 +78,6 @@ message_history = [
 ]
 
 # Functions calling
-def get_flight_price(destination: str) -> str:
-    price = random.randint(1500000, 5000000)
-    return f"Giá vé khứ hồi đến {destination} khoảng {price:,} VND."
-
 def get_itinerary(destination: str, days: int) -> str:
     activities = [
         "Tham quan địa danh nổi tiếng",
@@ -195,11 +192,20 @@ client = AzureOpenAI(
 functions = [
     {
         "name": "get_flight_price",
-        "description": "Lấy giá vé máy bay khứ hồi đến điểm du lịch",
+        "description": "Lấy giá vé máy bay từ điểm đi đến điểm du lịch (khứ hồi hoặc một chiều)",
         "parameters": {
             "type": "object",
-            "properties": {"destination": {"type": "string"}},
-            "required": ["destination"]
+            "properties": {
+                "origin": {"type": "string", "description": "Địa điểm khởi hành"},
+                "destination": {"type": "string", "description": "Địa điểm đến"},
+                "trip_type": {
+                    "type": "string",
+                    "description": "Loại chuyến đi: 'round_trip' cho khứ hồi, 'one_way' cho một chiều",
+                    "enum": ["round_trip", "one_way"],
+                    "default": "round_trip"
+                }
+            },
+            "required": ["origin", "destination"]
         }
     },
     {
@@ -460,11 +466,17 @@ def api_chat():
         except Exception:
             args = {}
 
+        # Lấy điểm đi - điểm đến khi tìm vé máy bay
         dest = args.get("destination", "").strip()
+        origin = args.get("origin", "").strip()
+        trip_type = args.get("trip_type", "").strip()
 
         # function calling
         if func_name == "get_flight_price":
-            result = get_flight_price(dest)
+            if not origin:  # Nếu không có điểm đi, yêu cầu cung cấp
+                reply = "Vui lòng cung cấp điểm khởi hành (ví dụ: Sài Gòn) để tra giá vé máy bay."
+            else:
+                result = get_flight_price(origin, dest, trip_type, "VND")
         elif func_name == "get_hotel_price":
             result = get_hotel_price(dest)
         elif func_name == "get_itinerary":
@@ -485,4 +497,7 @@ def api_chat():
     return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    if os.getenv("IS_PRODUCTION_MODE", "").strip().lower() == "true":
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    else:
+        app.run(host="0.0.0.0", port=5000, debug=True)    

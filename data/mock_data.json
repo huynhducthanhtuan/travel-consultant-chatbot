@@ -1,0 +1,84 @@
+{
+  "flights": [
+    {
+      "index": 0,
+      "origin": "Sài Gòn",
+      "destination": "Đà Nẵng",
+      "price": 1400000,
+      "airline": "VietJet Air",
+      "trip_type": "one_way"
+    },
+    {
+      "index": 1,
+      "origin": "Hà Nội",
+      "destination": "Đà Nẵng",
+      "price": 1600000,
+      "airline": "Vietnam Airlines",
+      "trip_type": "one_way"
+    },
+    {
+      "index": 2,
+      "origin": "Sài Gòn",
+      "destination": "Hà Nội",
+      "price": 1500000,
+      "airline": "Bamboo Airways",
+      "trip_type": "one_way"
+    },
+    {
+      "index": 3,
+      "origin": "Hà Nội",
+      "destination": "Phú Quốc",
+      "price": 1750000,
+      "airline": "Vietnam Airlines",
+      "trip_type": "one_way"
+    },
+    {
+      "index": 4,
+      "origin": "Sài Gòn",
+      "destination": "Huế",
+      "price": 1450000,
+      "airline": "VietJet Air",
+      "trip_type": "one_way"
+    },
+    {
+      "index": 5,
+      "origin": "Sài Gòn",
+      "destination": "Đà Nẵng",
+      "price": 2800000,
+      "airline": "VietJet Air",
+      "trip_type": "round_trip"
+    },
+    {
+      "index": 6,
+      "origin": "Hà Nội",
+      "destination": "Đà Nẵng",
+      "price": 3200000,
+      "airline": "Vietnam Airlines",
+      "trip_type": "round_trip"
+    },
+    {
+      "index": 7,
+      "origin": "Sài Gòn",
+      "destination": "Hà Nội",
+      "price": 3000000,
+      "airline": "Bamboo Airways",
+      "trip_type": "round_trip"
+    },
+    {
+      "index": 8,
+      "origin": "Hà Nội",
+      "destination": "Phú Quốc",
+      "price": 3500000,
+      "airline": "Vietnam Airlines",
+      "trip_type": "round_trip"
+    },
+    {
+      "index": 9,
+      "origin": "Sài Gòn",
+      "destination": "Huế",
+      "price": 2900000,
+      "airline": "VietJet Air",
+      "trip_type": "round_trip"
+    }
+  ]
+}
