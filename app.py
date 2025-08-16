@@ -84,10 +84,6 @@ def get_flight_price(destination: str) -> str:
     price = random.randint(1500000, 5000000)
     return f"Giá vé khứ hồi đến {destination} khoảng {price:,} VND."
 
-def get_hotel_price(destination: str) -> str:
-    price = random.randint(500000, 2000000)
-    return f"Giá khách sạn ở {destination} từ {price:,} VND/đêm."
-
 def get_itinerary(destination: str, days: int) -> str:
     activities = [
         "Tham quan địa danh nổi tiếng",
@@ -481,7 +477,6 @@ def api_chat():
             """
         }
     ]
-    print(messages)
 
     for q, a in chat_history:
         messages.append({"role": "user", "content": q})
