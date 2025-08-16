@@ -109,9 +109,9 @@ def get_flight_price(origin: str, destination: str, trip_type: str, currency: st
         flights = data.get("flights", [])
         # Tìm chuyến bay khớp với origin, destination, và trip_type
         for flight in flights:
-            if (flight.get("origin") == origin and 
-                flight.get("destination") == destination and 
-                flight.get("trip_type") == trip_type):
+            if (flight.get("origin", "").strip().encode('utf-8').decode('utf-8') == origin.strip().encode('utf-8').decode('utf-8') and
+                flight.get("destination", "").strip().encode('utf-8').decode('utf-8') == destination.strip().encode('utf-8').decode('utf-8') and
+                flight.get("trip_type", "").strip().encode('utf-8').decode('utf-8') == trip_type.strip().encode('utf-8').decode('utf-8')):
                 price = flight.get("price", random.randint(1500000, 5000000))
                 return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {price:,} {currency}."
         
@@ -124,17 +124,19 @@ def get_flight_price(origin: str, destination: str, trip_type: str, currency: st
             with open(os.path.join("data", "mock_data.json"), "r", encoding="utf-8") as file:
                 data = json.load(file)
             flights = data.get("flights", [])
+            print("flights:", flights)
             for flight in flights:
-                if (flight.get("origin") == origin and 
-                    flight.get("destination") == destination and 
-                    flight.get("trip_type") == trip_type):
+                if (flight.get("origin", "").strip().encode('utf-8').decode('utf-8') == origin.strip().encode('utf-8').decode('utf-8') and
+                    flight.get("destination", "").strip().encode('utf-8').decode('utf-8') == destination.strip().encode('utf-8').decode('utf-8') and
+                    flight.get("trip_type", "").strip().encode('utf-8').decode('utf-8') == trip_type.strip().encode('utf-8').decode('utf-8')):
                     price = flight.get("price", random.randint(1500000, 5000000))
-                    return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {price} {currency}."
+                    return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {price:,} {currency}."
+            
             price = random.randint(1500000, 5000000)
             return f"Không tìm thấy chuyến bay {trip_name} từ {origin} đến {destination}."
         
         except (FileNotFoundError, json.JSONDecodeError) as file_error:
-            return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {random.randint(1500000, 5000000):,} {currency} (dữ liệu dự phòng do lỗi khi đọc file mock_data.json: {str(file_error)})." 
+            return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {random.randint(1500000, 5000000):,} {currency} (dữ liệu dự phòng do lỗi khi đọc file mock_data.json: {str(file_error)})."
 
 @tool
 def get_itinerary(destination: str, days: int) -> str:
