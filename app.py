@@ -636,52 +636,52 @@ def api_chat():
     ]
 
 
-    for q, a in chat_history:
-        messages.append({"role": "user", "content": q})
-        messages.append({"role": "assistant", "content": a})
-    messages.append({"role": "user", "content": user_message})
-
-
-    # call model to decide function or direct answer
-    try:
-        message = call_model_with_functions(messages)
-    except Exception as e:
-        return jsonify({"error": f"Model call failed: {e}"}), 500
-
-
-    # if model wants to call function
-    if getattr(message, "function_call", None):
-        response = agent.invoke({"messages": messages})
-        ai_reply = response["messages"][-1].content
-
-
-        chat_history.append((user_message, ai_reply))
-        return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
-
-
-    # else not function_call -> if model returned plain content, use it
-    reply = getattr(message, "content", "") or ""
-
-
-    chat_history.append((user_message, reply))
-    return jsonify({"reply": reply, "sources": [], "history": chat_history})
-
-    # # Build messages context
     # for q, a in chat_history:
     #     messages.append({"role": "user", "content": q})
     #     messages.append({"role": "assistant", "content": a})
     # messages.append({"role": "user", "content": user_message})
 
-    # # ✅ Gọi LangChain ReAct Agent trực tiếp
+
+    # # call model to decide function or direct answer
     # try:
+    #     message = call_model_with_functions(messages)
+    # except Exception as e:
+    #     return jsonify({"error": f"Model call failed: {e}"}), 500
+
+
+    # # if model wants to call function
+    # if getattr(message, "function_call", None):
     #     response = agent.invoke({"messages": messages})
     #     ai_reply = response["messages"][-1].content
-    # except Exception as e:
-    #     return jsonify({"error": f"LangChain Agent call failed: {e}"}), 500
 
-    # # Cập nhật lịch sử & trả kết quả
-    # chat_history.append((user_message, ai_reply))
-    # return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
+
+    #     chat_history.append((user_message, ai_reply))
+    #     return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
+
+
+    # # else not function_call -> if model returned plain content, use it
+    # reply = getattr(message, "content", "") or ""
+
+
+    # chat_history.append((user_message, reply))
+    # return jsonify({"reply": reply, "sources": [], "history": chat_history})
+
+    # Build messages context
+    for q, a in chat_history:
+        messages.append({"role": "user", "content": q})
+        messages.append({"role": "assistant", "content": a})
+    messages.append({"role": "user", "content": user_message})
+
+    # Gọi LangChain ReAct Agent trực tiếp
+    try:
+        response = agent.invoke({"messages": messages})
+        ai_reply = response["messages"][-1].content
+    except Exception as e:
+        return jsonify({"error": f"LangChain Agent call failed: {e}"}), 500
+
+    # Cập nhật lịch sử & trả kết quả
+    chat_history.append((user_message, ai_reply))
+    return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
 
 
 if __name__ == "__main__":
