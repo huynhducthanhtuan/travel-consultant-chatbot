@@ -62,29 +62,6 @@ if stats["total_vector_count"] == 0:
 else:
     print("Dữ liệu đã tồn tại, bỏ qua upsert")
 
-# Short-term memory message
-message_history = [
-    {
-        "role": "system",
-        "content": """
-            Bạn là một hướng dẫn viên du lịch Việt Nam.
-            Luôn trả lời thật chi tiết, bao gồm:
-            - Giới thiệu tổng quan điểm đến (lịch sử, văn hóa, khí hậu, điểm nổi bật).
-            - Các hoạt động gợi ý cho từng ngày kèm mô tả cụ thể (địa điểm, giờ đi, chi phí dự kiến, lưu ý đặc biệt).
-            - Gợi ý ăn uống (tên món, nhà hàng/quán nổi tiếng).
-            - Mẹo và kinh nghiệm khi đi (thời tiết, phương tiện, vé tham quan).
-            Không được trả lời quá ngắn gọn hay chỉ liệt kê.
-            Trình bày rõ ràng theo từng mục và ngày.
-            Quy tắc đặc biệt:
-                - Nếu câu hỏi liên quan đến **giá khách sạn**, luôn gọi tool get_hotel_prices.
-                - Nếu câu hỏi liên quan đến **giá vé máy bay**, luôn gọi tool get_flight_prices.
-                - Nếu câu hỏi liên quan đến **thời tiết**, luôn gọi tool get_weather_city.
-                - Các câu hỏi khác (thời tiết, địa điểm du lịch, mẹo du lịch, sự kiện) thì trả lời trực tiếp.
-                - Trả lời ngắn gọn, dễ hiểu, văn bản thuần, không dùng Markdown.
-        """
-    }
-]
-
 # Functions calling
 @tool
 def get_flight_price(origin: str, destination: str, trip_type: str, currency: str) -> str:
@@ -128,7 +105,7 @@ def get_flight_price(origin: str, destination: str, trip_type: str, currency: st
             with open(os.path.join("data", "mock_data.json"), "r", encoding="utf-8") as file:
                 data = json.load(file)
             flights = data.get("flights", [])
-            print("flights:", flights)
+            
             for flight in flights:
                 if (flight.get("origin", "").strip().encode('utf-8').decode('utf-8') == origin.strip().encode('utf-8').decode('utf-8') and
                     flight.get("destination", "").strip().encode('utf-8').decode('utf-8') == destination.strip().encode('utf-8').decode('utf-8') and
@@ -141,7 +118,6 @@ def get_flight_price(origin: str, destination: str, trip_type: str, currency: st
        
         except (FileNotFoundError, json.JSONDecodeError) as file_error:
             return f"Giá vé máy bay {trip_name} từ {origin} đến {destination} khoảng {random.randint(1500000, 5000000):,} {currency} (dữ liệu dự phòng do lỗi khi đọc file mock_data.json: {str(file_error)})."
-
 
 @tool
 def get_itinerary(destination: str, days: int) -> str:
@@ -372,6 +348,21 @@ few_shots = [
             Mẹo: Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
         """
     },
+    # Cập nhật/Đổi lịch trình
+    {
+        "role": "user",
+        "content": "Tôi muốn cập nhật lịch trình 3 ngày thành những địa điểm khác, hãy cho tôi gợi ý."
+    },
+    {
+        "role": "assistant",
+        "content": (
+            "Dưới đây là gợi ý lịch trình 3 ngày khác tại Đà Nẵng:\n\n"
+            "*Ngày 1:* Tham quan bán đảo Sơn Trà, ghé chùa Linh Ứng, tối thưởng thức hải sản tại biển Mỹ Khê.\n"
+            "*Ngày 2:* Khám phá Ngũ Hành Sơn, chiều tham quan bảo tàng Chăm, tối dạo phố cổ Hội An.\n"
+            "*Ngày 3:* Tham quan công viên suối khoáng nóng Núi Thần Tài, trải nghiệm ẩm thực địa phương, mua quà lưu niệm tại chợ Hàn.\n"
+            "Mẹo: Thuê xe máy để di chuyển thuận tiện, đặt vé tham quan trước để tránh đông, mang kem chống nắng và nón rộng vành."
+        )
+    },
     # Địa điểm du lịch
     {
         "role": "user",
@@ -381,7 +372,6 @@ few_shots = [
         "role": "assistant",
         "content": "Một số địa điểm nổi tiếng ở Đà Nẵng gồm: Bà Nà Hills, biển Mỹ Khê, cầu Rồng, Ngũ Hành Sơn, chợ Hàn, bán đảo Sơn Trà, và phố cổ Hội An (cách Đà Nẵng khoảng 30km)."
     },
- 
     # Thời tiết
     {
         "role": "user",
@@ -391,7 +381,6 @@ few_shots = [
         "role": "assistant",
         "content": "Hôm nay Đà Nẵng có nắng nhẹ, nhiệt độ khoảng 28-32°C, độ ẩm 70%, gió nhẹ, thích hợp cho các hoạt động ngoài trời."
     },
- 
     # Giá vé máy bay
     {
         "role": "user",
@@ -401,7 +390,6 @@ few_shots = [
         "role": "assistant",
         "content": "Giá vé khứ hồi từ TP.HCM đến Đà Nẵng khoảng 1,500,000 - 2,500,000 VND, tùy hãng bay và thời điểm đặt."
     },
- 
     # Giá phòng khách sạn
     {
         "role": "user",
@@ -411,9 +399,7 @@ few_shots = [
         "role": "assistant",
         "content": "Giá phòng khách sạn ở Đà Nẵng dao động từ 500,000 VND/đêm cho khách sạn 2-3 sao, từ 1,500,000 VND/đêm cho resort hoặc khách sạn ven biển cao cấp."
     },
-
-
-     # Mẹo du lịch
+    # Mẹo du lịch
     {
         "role": "user",
         "content": "Đi du lịch Đà Nẵng thì nên lưu ý gì?"
@@ -422,8 +408,6 @@ few_shots = [
         "role": "assistant",
         "content": "Nên mang theo kem chống nắng, mũ, kính râm. Đặt vé Bà Nà Hills trước để tránh hết chỗ. Buổi tối cuối tuần có thể xem cầu Rồng phun lửa, nhớ đi sớm để chọn chỗ đẹp."
     },
-
-
     # So sánh thành phố
     {
         "role": "user",
@@ -446,8 +430,6 @@ few_shots = [
         "role": "assistant",
         "content": "Một số khách sạn 5 sao ở Đà Nẵng: InterContinental Danang Sun Peninsula Resort (~9,000,000 VND/đêm), Furama Resort (~3,500,000 VND/đêm), Hyatt Regency (~4,000,000 VND/đêm)."
     },
-
-
     # Phương tiện di chuyển
     {
         "role": "user",
@@ -457,8 +439,6 @@ few_shots = [
         "role": "assistant",
         "content": "Bạn có thể thuê xe máy (~120k-150k/ngày) để đi lại linh hoạt. Nếu đi gia đình thì nên thuê taxi hoặc Grab. Ngoài ra còn có xe bus đi Hội An giá rẻ."
     },
-
-
     # Sự kiện đặc biệt
     {
         "role": "user",
@@ -468,9 +448,6 @@ few_shots = [
         "role": "assistant",
         "content": "Đà Nẵng nổi tiếng với Lễ hội pháo hoa quốc tế (DIFF) thường diễn ra vào tháng 6-7 hằng năm, thu hút nhiều du khách trong và ngoài nước."
     },
-   
-
-
 ]
 
 # Flask app
@@ -603,11 +580,9 @@ agent = create_react_agent(
     tools=tools,
 )
 
-
 @app.route("/")
 def home():
     return render_template("index.html")
-
 
 # Lưu lịch sử chat theo session_id (demo)
 chat_histories = {}
@@ -620,7 +595,6 @@ def api_chat():
     user_input = data.get("message", "")
     history = chat_histories.get(session_id, [])
     history.append({"role": "user", "content": user_input})
-
 
     if not is_vietnamese_language(user_message):
         reply = "Vui lòng hỏi những vấn đề du lịch bằng tiếng Việt."
@@ -639,8 +613,27 @@ def api_chat():
 
 
     messages = [
-        *message_history,
         *few_shots,
+        {
+            "role": "system",
+            "content": f"""
+                Bạn là một hướng dẫn viên du lịch Việt Nam.
+                {f"Đây là dữ liệu du lịch lấy từ cơ sở dữ liệu: {search_result}" if search_result else ""}
+                Luôn trả lời thật chi tiết, bao gồm:
+                - Giới thiệu tổng quan điểm đến (lịch sử, văn hóa, khí hậu, điểm nổi bật).
+                - Các hoạt động gợi ý cho từng ngày kèm mô tả cụ thể (địa điểm, giờ đi, chi phí dự kiến, lưu ý đặc biệt).
+                - Gợi ý ăn uống (tên món, nhà hàng/quán nổi tiếng).
+                - Mẹo và kinh nghiệm khi đi (thời tiết, phương tiện, vé tham quan).
+                Không được trả lời quá ngắn gọn hay chỉ liệt kê.
+                Trình bày rõ ràng theo từng mục và ngày.
+                Quy tắc đặc biệt:
+                    - Nếu câu hỏi liên quan đến **giá khách sạn**, luôn gọi tool get_hotel_prices.
+                    - Nếu câu hỏi liên quan đến **giá vé máy bay**, luôn gọi tool get_flight_prices.
+                    - Nếu câu hỏi liên quan đến **thời tiết**, luôn gọi tool get_weather_city.
+                    - Các câu hỏi khác (thời tiết, địa điểm du lịch, mẹo du lịch, sự kiện) thì trả lời trực tiếp.
+                    - Trả lời ngắn gọn, dễ hiểu, văn bản thuần (plain text), không dùng Markdown, không dùng ký hiệu #, -, *, **.
+            """
+        }
     ]
 
 
