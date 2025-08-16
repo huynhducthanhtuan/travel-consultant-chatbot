@@ -122,7 +122,7 @@ def get_weather_city(city: str) -> str:
         weather = data["weather"][0]["description"]
         temp = data["main"]["temp"]
         feels_like = data["main"]["feels_like"]
-        return f"Thời tiết ở thành phố {city} is {weather}, nhiệt độ là {temp}°C (cảm giác như {feels_like}°C)."
+        return f"Thời tiết ở thành phố {city} là {weather}, nhiệt độ là {temp}°C (cảm giác như {feels_like}°C)."
 
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -285,23 +285,44 @@ few_shots = [
             Mẹo: Mang kem chống nắng, đặt vé Bà Nà trước 1-2 ngày, thuê xe máy di chuyển thuận tiện.
         """
     },
-    # Ví dụ 2: hỏi giá vé
+    # Địa điểm du lịch
     {
         "role": "user",
-        "content": "Giá vé máy bay khứ hồi đến Hà Nội là bao nhiêu?"
+        "content": "Gợi ý cho tôi một số địa điểm du lịch nổi tiếng ở Đà Nẵng."
     },
     {
         "role": "assistant",
-        "content": "Giá vé khứ hồi đến Hà Nội khoảng 2,500,000 VND, tùy hãng và thời điểm đặt."
+        "content": "Một số địa điểm nổi tiếng ở Đà Nẵng gồm: Bà Nà Hills, biển Mỹ Khê, cầu Rồng, Ngũ Hành Sơn, chợ Hàn, bán đảo Sơn Trà, và phố cổ Hội An (cách Đà Nẵng khoảng 30km)."
     },
-    # Ví dụ 3: hỏi khách sạn
+ 
+    # Thời tiết
     {
         "role": "user",
-        "content": "Khách sạn ở Nha Trang giá bao nhiêu?"
+        "content": "Thời tiết Đà Nẵng hôm nay thế nào?"
     },
     {
         "role": "assistant",
-        "content": "Giá khách sạn ở Nha Trang từ 800,000 VND/đêm cho khách sạn 3 sao, cao hơn với resort ven biển."
+        "content": "Hôm nay Đà Nẵng có nắng nhẹ, nhiệt độ khoảng 28-32°C, độ ẩm 70%, gió nhẹ, thích hợp cho các hoạt động ngoài trời."
+    },
+ 
+    # Giá vé máy bay
+    {
+        "role": "user",
+        "content": "Giá vé máy bay khứ hồi từ TP.HCM đến Đà Nẵng là bao nhiêu?"
+    },
+    {
+        "role": "assistant",
+        "content": "Giá vé khứ hồi từ TP.HCM đến Đà Nẵng khoảng 1,500,000 - 2,500,000 VND, tùy hãng bay và thời điểm đặt."
+    },
+ 
+    # Giá phòng khách sạn
+    {
+        "role": "user",
+        "content": "Giá phòng khách sạn ở Đà Nẵng là bao nhiêu?"
+    },
+    {
+        "role": "assistant",
+        "content": "Giá phòng khách sạn ở Đà Nẵng dao động từ 500,000 VND/đêm cho khách sạn 2-3 sao, từ 1,500,000 VND/đêm cho resort hoặc khách sạn ven biển cao cấp."
     }
 ]
 
@@ -372,6 +393,8 @@ def is_tourism_related(question: str) -> bool:
                 "Trả lời chỉ 'yes' nếu câu hỏi liên quan đến: "
                 "1) Du lịch Việt Nam (địa điểm, lịch trình, ẩm thực, mẹo du lịch) "
                 "hoặc 2) Thời tiết ở các tỉnh/thành phố của Việt Nam. "
+                "hoặc 3) Giá vé máy bay ở các tỉnh/thành phố của Việt Nam. "
+                "hoặc 4) Giá phòng khách sạn ở các tỉnh/thành phố của Việt Nam. "
                 "Trả lời 'no' nếu không liên quan."
             )
         },
