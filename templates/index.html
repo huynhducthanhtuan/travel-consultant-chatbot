@@ -8,55 +8,11 @@
       href="https://cdn.jsdelivr.net/npm/twemoji@11.3.0/2/svg/1f916.svg"
       type="image/x-icon"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
     <title>Chatbot Tư Vấn Du Lịch</title>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        max-width: 900px;
-        margin: 20px auto;
-      }
-      #chat {
-        border: 1px solid #ddd;
-        padding: 12px;
-        height: 80vh;
-        overflow: auto;
-        background: #fafafa;
-      }
-      .msg {
-        margin: 8px 0;
-        padding: 8px 10px;
-        border-radius: 8px;
-        max-width: 80%;
-      }
-      .user {
-        background: #d9f1ff;
-        margin-left: auto;
-      }
-      .bot {
-        background: #fff;
-        margin-right: auto;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-      }
-      #inputRow {
-        margin-top: 10px;
-        display: flex;
-        gap: 8px;
-      }
-      #txt {
-        flex: 1;
-        padding: 8px;
-        font-size: 16px;
-      }
-      button {
-        padding: 8px 12px;
-        font-size: 16px;
-      }
-      .sources {
-        font-size: 12px;
-        color: #666;
-        margin-top: 6px;
-      }
-    </style>
   </head>
   <body>
     <h3>🌴 Chatbot Tư Vấn Du Lịch Việt Nam</h3>
