@@ -278,58 +278,6 @@ client = AzureOpenAI(
     azure_deployment=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4")
 )
 
-# Functions calling schema
-functions = [
-    {
-        "name": "get_flight_price",
-        "description": "Lấy giá vé máy bay từ điểm đi đến điểm du lịch (khứ hồi hoặc một chiều)",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "origin": {"type": "string", "description": "Địa điểm khởi hành"},
-                "destination": {"type": "string", "description": "Địa điểm đến"},
-                "trip_type": {
-                    "type": "string",
-                    "description": "Loại chuyến đi: 'round_trip' cho khứ hồi, 'one_way' cho một chiều",
-                    "enum": ["round_trip", "one_way"],
-                    "default": "round_trip"
-                }
-            },
-            "required": ["origin", "destination"]
-        }
-    },
-    {
-        "name": "get_hotel_price",
-        "description": "Lấy giá khách sạn trung bình ở điểm du lịch",
-        "parameters": {
-            "type": "object",
-            "properties": {"destination": {"type": "string"}},
-            "required": ["destination"]
-        }
-    },
-    {
-        "name": "get_itinerary",
-        "description": "Gợi ý lịch trình du lịch",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "destination": {"type": "string"},
-                "days": {"type": "integer"}
-            },
-            "required": ["destination", "days"]
-        }
-    },
-    {
-        "name": "get_weather_city",
-        "description": "Lấy thời tiết ở thành phố",
-        "parameters": {
-            "type": "object",
-            "properties": {"destination": {"type": "string"}},
-            "required": ["destination"]
-        }
-    },
-]
-
 # Few-shot prompting
 few_shots = [
     # Ví dụ 1: hỏi về địa điểm
@@ -634,37 +582,6 @@ def api_chat():
             """
         }
     ]
-
-
-    # for q, a in chat_history:
-    #     messages.append({"role": "user", "content": q})
-    #     messages.append({"role": "assistant", "content": a})
-    # messages.append({"role": "user", "content": user_message})
-
-
-    # # call model to decide function or direct answer
-    # try:
-    #     message = call_model_with_functions(messages)
-    # except Exception as e:
-    #     return jsonify({"error": f"Model call failed: {e}"}), 500
-
-
-    # # if model wants to call function
-    # if getattr(message, "function_call", None):
-    #     response = agent.invoke({"messages": messages})
-    #     ai_reply = response["messages"][-1].content
-
-
-    #     chat_history.append((user_message, ai_reply))
-    #     return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
-
-
-    # # else not function_call -> if model returned plain content, use it
-    # reply = getattr(message, "content", "") or ""
-
-
-    # chat_history.append((user_message, reply))
-    # return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
     # Build messages context
     for q, a in chat_history:
