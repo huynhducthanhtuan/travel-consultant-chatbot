@@ -183,8 +183,7 @@ def get_weather_city(city: str) -> str:
     except Exception as e:
         print(f"Error: {str(e)}")
         return f"Error: {str(e)}"
-   
-@tool
+
 def usd_to_vnd(usd_price: float) -> str | None:
     """
     Chuyển đổi một số tiền USD nhất định sang VND bằng tỷ giá hối đoái cố định.
@@ -234,6 +233,7 @@ def get_hotel_price(destination: str) -> str:
  
         data = res.json()
         hotels = data.get("data", {}).get("properties", [])
+        
         if not hotels:
             return f"Không tìm thấy khách sạn nào ở {destination}."
  
@@ -572,7 +572,6 @@ tools = [
     get_hotel_price,
     get_weather_city,
     get_itinerary,
-    usd_to_vnd,
     tavily_search_tool
 ]
 agent = create_react_agent(
@@ -627,7 +626,7 @@ def api_chat():
                 Không được trả lời quá ngắn gọn hay chỉ liệt kê.
                 Trình bày rõ ràng theo từng mục và ngày.
                 Quy tắc đặc biệt:
-                    - Nếu câu hỏi liên quan đến **giá khách sạn**, luôn gọi tool get_hotel_prices.
+                    - Nếu câu hỏi liên quan đến **giá phòng, giá khách sạn**, luôn gọi tool get_hotel_price.
                     - Nếu câu hỏi liên quan đến **giá vé máy bay**, luôn gọi tool get_flight_prices.
                     - Nếu câu hỏi liên quan đến **thời tiết**, luôn gọi tool get_weather_city.
                     - Các câu hỏi khác (thời tiết, địa điểm du lịch, mẹo du lịch, sự kiện) thì trả lời trực tiếp.
@@ -666,6 +665,23 @@ def api_chat():
 
     chat_history.append((user_message, reply))
     return jsonify({"reply": reply, "sources": [], "history": chat_history})
+
+    # # Build messages context
+    # for q, a in chat_history:
+    #     messages.append({"role": "user", "content": q})
+    #     messages.append({"role": "assistant", "content": a})
+    # messages.append({"role": "user", "content": user_message})
+
+    # # ✅ Gọi LangChain ReAct Agent trực tiếp
+    # try:
+    #     response = agent.invoke({"messages": messages})
+    #     ai_reply = response["messages"][-1].content
+    # except Exception as e:
+    #     return jsonify({"error": f"LangChain Agent call failed: {e}"}), 500
+
+    # # Cập nhật lịch sử & trả kết quả
+    # chat_history.append((user_message, ai_reply))
+    # return jsonify({"reply": ai_reply, "sources": [], "history": chat_history})
 
 
 if __name__ == "__main__":
