@@ -550,7 +550,7 @@ def api_chat():
     history.append({"role": "user", "content": user_input})
 
     if not is_vietnamese_language(user_message):
-        reply = "Vui lòng hỏi đáp bằng tiếng Việt."
+        reply = "Vui lòng hỏi những vấn đề du lịch bằng tiếng Việt."
         chat_history.append((user_message, reply))
         return jsonify({"reply": reply, "sources": [], "history": chat_history})
 
