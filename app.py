@@ -1,7 +1,4 @@
 from pinecone import Pinecone, ServerlessSpec
-from langchain_openai import AzureOpenAIEmbeddings, AzureChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain_pinecone import PineconeVectorStore
 from flask import Flask, render_template, request, jsonify
 from openai import AzureOpenAI, OpenAI
 from dotenv import load_dotenv
@@ -186,32 +183,6 @@ def get_hotel_price(destination: str) -> str:
     except Exception as e:
         return f"Lỗi khi lấy dữ liệu giá khách sạn: {str(e)}"
 
-# Embeddings
-# embeddings = AzureOpenAIEmbeddings(
-#     model=os.getenv("AZURE_DEPLOYMENT_NAME_EBD3"),
-#     api_key=os.getenv("AZURE_OPENAI_API_KEY_EBD3"),
-#     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-#     openai_api_version="2024-07-01-preview"
-# )
-# vectorstore = PineconeVectorStore(
-#     index, 
-#     embedding=embeddings, 
-#     text_key="text"
-# )
-
-# LangChain Azure Chat (used for RAG conversational retriever)
-# chat = AzureChatOpenAI(
-#     deployment_name=os.environ.get("AZURE_DEPLOYMENT_NAME_GPT4"),
-#     api_key=os.getenv("AZURE_OPENAI_API_KEY_GPT4"),
-#     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-#     api_version="2024-07-01-preview"
-# )
-# retrieval_chain = ConversationalRetrievalChain.from_llm(
-#     llm=chat,
-#     retriever=vectorstore.as_retriever(),
-#     return_source_documents=True
-# )
-
 # AzureOpenAI client
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY_GPT4"),
@@ -325,9 +296,6 @@ few_shots = [
 # Flask app
 app = Flask(__name__)
 
-# helper: list of destination names from mock_docs (left part before ":")
-# DEST_NAMES = [d.split(":")[0].strip() for d in mock_docs]
-
 def search_tourism(query, top_k=1):
     client = OpenAI(
         base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
@@ -368,12 +336,6 @@ def call_model_with_functions(messages):
         temperature=0.1
     )
     return resp.choices[0].message
-
-# def fallback_rag(question, chat_history):
-#     """Dùng LangChain retrieval_chain để lấy answer nếu mock không đủ"""
-#     rag = retrieval_chain({"question": question, "chat_history": chat_history})
-#     # retrieval_chain trả về dict: {'answer': ..., 'source_documents': [...]}
-#     return rag.get("answer", "").strip(), rag.get("source_documents", [])
 
 # Helper functions
 def is_tourism_related(question: str) -> bool:
@@ -500,14 +462,7 @@ def api_chat():
 
         dest = args.get("destination", "").strip()
 
-        # If destination not in mock list, fallback to RAG
-        # if dest and dest not in DEST_NAMES:
-        #     rag_answer, sources = fallback_rag(user_message, chat_history)
-        #     reply = rag_answer or f"Xin lỗi, không tìm thấy thông tin về {dest} trong dữ liệu của tôi."
-        #     chat_history.append((user_message, reply))
-        #     return jsonify({"reply": reply, "sources": [s.metadata if hasattr(s, 'metadata') else str(s) for s in sources], "history": chat_history})
-
-        # destination exists in mock -> execute local function
+        # function calling
         if func_name == "get_flight_price":
             result = get_flight_price(dest)
         elif func_name == "get_hotel_price":
@@ -525,13 +480,6 @@ def api_chat():
 
     # else not function_call -> if model returned plain content, use it
     reply = getattr(message, "content", "") or ""
-
-    # Fallback RAG
-    # if not reply.strip() or "không biết" in reply.lower():
-    #     rag_answer, sources = fallback_rag(user_message, chat_history)
-    #     reply = rag_answer or reply or "Xin lỗi, tôi chưa có dữ liệu."
-    #     chat_history.append((user_message, reply))
-    #     return jsonify({"reply": reply, "sources": [s.metadata if hasattr(s, 'metadata') else str(s) for s in sources], "history": chat_history})
 
     chat_history.append((user_message, reply))
     return jsonify({"reply": reply, "sources": [], "history": chat_history})
